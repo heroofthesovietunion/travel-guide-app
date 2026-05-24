@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✈️ AI 여행 정보</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <style>
+    /* ===== CSS 변수 ===== */
+    :root {
+      --primary: #2563EB;
+      --accent: #10B981;
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-primary: #1E293B;
+      --text-secondary: #64748B;
+      --error: #EF4444;
+
+      /* 확장 팔레트 */
+      --navy: #0F172A;
+      --gold: #C9A84C;
+      --gold-light: #F0D98A;
+      --cream: #FDFAF4;
+      --border: #E2E8F0;
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 8px 32px rgba(15, 23, 42, 0.10);
+      --shadow-lg: 0 20px 60px rgba(15, 23, 42, 0.14);
+    }
+
+    /* ===== 리셋 & 베이스 ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      background-color: var(--cream);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ===== 배경 패턴 ===== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0 L30 60 M0 30 L60 30' stroke='%230F172A' stroke-width='0.3' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== 레이아웃 ===== */
+    .container {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    main {
+      flex: 1;
+      padding: 40px 0 60px;
+    }
+
+    /* ===== 헤더 ===== */
+    header {
+      background: var(--navy);
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 50%, rgba(201, 168, 76, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 50%, rgba(37, 99, 235, 0.12) 0%, transparent 60%);
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .header-inner {
+      position: relative;
+      z-index: 1;
+      padding: 48px 24px 44px;
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .header-eyebrow {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.2s forwards;
+    }
+
+    .header-title {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin-bottom: 12px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.35s forwards;
+    }
+
+    .header-title span {
+      color: var(--gold-light);
+    }
+
+    .header-subtitle {
+      font-size: 0.92rem;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: 0.02em;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.5s forwards;
+    }
+
+    /* ===== 검색 섹션 ===== */
+    #search-section {
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.65s forwards;
+    }
+
+    .search-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 36px 36px 32px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(201, 168, 76, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .search-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .search-label {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .search-hint {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      font-weight: 300;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    #location-input {
+      flex: 1;
+      height: 52px;
+      padding: 0 20px;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: 0.97rem;
+      color: var(--text-primary);
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      width: 100%;
+    }
+
+    #location-input::placeholder {
+      color: #94A3B8;
+      font-weight: 300;
+    }
+
+    #location-input:focus {
+      border-color: var(--primary);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+    }
+
+    #search-btn {
+      height: 52px;
+      padding: 0 28px;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: 0.93rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      background: linear-gradient(135deg, var(--primary), #1D4ED8);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+      letter-spacing: 0.02em;
+    }
+
+    #search-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+    }
+
+    #search-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    #search-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* ===== 인풋 오류 ===== */
+    .error-text {
+      font-size: 0.83rem;
+      color: var(--error);
+      margin-top: 10px;
+      padding: 0 4px;
+      font-weight: 500;
+    }
+
+    /* ===== 로딩 섹션 ===== */
+    #loading-section {
+      text-align: center;
+      padding: 80px 24px;
+    }
+
+    .spinner-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .spinner {
+      width: 52px;
+      height: 52px;
+      border: 3px solid rgba(37, 99, 235, 0.12);
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    .spinner-ring {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      border-top: 1px solid var(--gold);
+      border-radius: 50%;
+      animation: spin 2.4s linear infinite reverse;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-title {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    .loading-subtitle {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      font-weight: 300;
+    }
+
+    #cancel-search-btn {
+      margin-top: 24px;
+      height: 40px;
+      padding: 0 24px;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    #cancel-search-btn:hover {
+      background: var(--bg);
+      color: var(--text-primary);
+    }
+
+    .loading-dots::after {
+      content: '';
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+
+    @keyframes dots {
+      0%   { content: ''; }
+      25%  { content: '.'; }
+      50%  { content: '..'; }
+      75%  { content: '...'; }
+      100% { content: ''; }
+    }
+
+    /* ===== 오류 섹션 ===== */
+    #error-section {
+      background: #FEF2F2;
+      border-left: 4px solid var(--error);
+      border-radius: 0 16px 16px 0;
+      padding: 28px 32px;
+      margin-top: 8px;
+    }
+
+    .error-icon {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .error-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--error);
+      margin-bottom: 6px;
+    }
+
+    #error-message {
+      font-size: 0.95rem;
+      color: #7F1D1D;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    #retry-btn {
+      height: 44px;
+      padding: 0 24px;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--error);
+      background: #FFFFFF;
+      border: 1.5px solid var(--error);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+      letter-spacing: 0.02em;
+    }
+
+    #retry-btn:hover:not(:disabled) {
+      background: var(--error);
+      color: #FFFFFF;
+    }
+
+    #retry-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* ===== 결과 섹션 ===== */
+    #results-section {
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    .results-header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    #results-title {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.2;
+    }
+
+    #results-title em {
+      font-style: normal;
+      color: var(--primary);
+    }
+
+    .results-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 6px;
+      padding: 4px 10px;
+      white-space: nowrap;
+    }
+
+    #invalid-section {
+      background: #FFFBEB;
+      border-left: 4px solid #F59E0B;
+      border-radius: 0 16px 16px 0;
+      padding: 28px 32px;
+      margin-top: 8px;
+    }
+
+    .invalid-icon {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .invalid-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #92400E;
+      margin-bottom: 8px;
+    }
+
+    .invalid-message {
+      font-size: 0.875rem;
+      color: #78350F;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .suggestion-area {
+      background: #fff;
+      border: 1px solid #FCD34D;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+    }
+
+    .suggestion-label {
+      font-size: 0.78rem;
+      color: #92400E;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .suggestion-btn {
+      background: #F59E0B;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .suggestion-btn:hover { background: #D97706; }
+
+    .invalid-back-btn {
+      background: transparent;
+      border: 1px solid #D97706;
+      color: #92400E;
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .invalid-back-btn:hover { background: #FEF3C7; }
+
+    .ai-disclaimer {
+      font-size: 0.78rem;
+      color: #92400e;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      padding: 8px 14px;
+      margin-bottom: 24px;
+    }
+
+    /* ===== 결과 그룹 카드 ===== */
+    .result-group {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+      padding: 28px 28px 8px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.2s ease;
+    }
+
+    .result-group:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .result-group.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .result-group h3 {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: 1.0rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.01em;
+    }
+
+    /* ===== 리스트 아이템 ===== */
+    ul#attractions-list,
+    ul#restaurants-list,
+    ul#transportation-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .info-item {
+      padding: 14px 4px 14px;
+      border-bottom: 1px solid #F1F5F9;
+      transition: background 0.15s ease;
+      border-radius: 8px;
+      margin: 0 -8px;
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .info-item:hover {
+      background: #F8FAFC;
+    }
+
+    .item-name {
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+
+    .item-address {
+      display: inline-block;
+      font-size: 0.78rem;
+      color: var(--primary);
+      margin-top: 4px;
+      font-weight: 500;
+      background: rgba(37, 99, 235, 0.06);
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .item-address:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .item-desc {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      line-height: 1.65;
+      font-weight: 300;
+    }
+
+    /* ===== 새 검색 버튼 ===== */
+    .new-search-wrap {
+      text-align: center;
+      margin-top: 32px;
+      margin-bottom: 8px;
+    }
+
+    #new-search-btn {
+      height: 52px;
+      padding: 0 36px;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: 0.93rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: #FFFFFF;
+      border: 1.5px solid var(--primary);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+      letter-spacing: 0.02em;
+    }
+
+    #new-search-btn:hover {
+      background: var(--primary);
+      color: #FFFFFF;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    /* ===== 푸터 ===== */
+    footer {
+      background: var(--navy);
+      padding: 24px;
+      text-align: center;
+      position: relative;
+    }
+
+    footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .footer-text {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.38);
+      letter-spacing: 0.04em;
+      font-weight: 300;
+    }
+
+    .footer-text strong {
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 500;
+    }
+
+    /* ===== 유틸리티 ===== */
+    .hidden {
+      display: none !important;
+    }
+
+    /* ===== 애니메이션 ===== */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 600px) {
+      .header-inner {
+        padding: 36px 20px 32px;
+      }
+
+      .search-card {
+        padding: 24px 20px 20px;
+      }
+
+      .input-group {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      #search-btn {
+        width: 100%;
+      }
+
+      .result-group {
+        padding: 20px 16px 4px;
+      }
+
+      .results-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      #new-search-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== 헤더 ===== -->
+  <header>
+    <div class="header-inner">
+      <p class="header-eyebrow">AI-Powered Travel Guide</p>
+      <h1 class="header-title">✈️ AI <span>여행 정보</span></h1>
+      <p class="header-subtitle">원하는 여행지를 입력하면 AI가 관광지, 식당, 교통편을 추천해드립니다</p>
+    </div>
+  </header>
+
+  <!-- ===== 메인 콘텐츠 ===== -->
+  <main>
+    <div class="container">
+
+      <!-- 검색 섹션 -->
+      <section id="search-section">
+        <div class="search-card">
+          <p class="search-label">어디로 떠나시나요?</p>
+          <p class="search-hint">도시명, 지역명, 나라명 모두 가능합니다</p>
+          <div class="input-group">
+            <input
+              type="text"
+              id="location-input"
+              placeholder="여행 지역을 입력하세요 (예: 도쿄, 제주도, 파리)"
+              autofocus
+              autocomplete="off"
+            >
+            <button id="search-btn">🔍 검색</button>
+          </div>
+          <p id="input-error" class="error-text hidden"></p>
+        </div>
+      </section>
+
+      <!-- 로딩 섹션 -->
+      <section id="loading-section" class="hidden">
+        <div style="text-align:center; padding: 72px 24px;">
+          <div class="spinner-wrap">
+            <div class="spinner-ring"></div>
+            <div class="spinner"></div>
+          </div>
+          <p class="loading-title">여행 정보를 분석하고 있습니다<span class="loading-dots"></span></p>
+          <p class="loading-subtitle">AI가 최적의 여행 정보를 탐색 중입니다</p>
+          <button id="cancel-search-btn">✕ 취소</button>
+        </div>
+      </section>
+
+      <!-- 오류 섹션 -->
+      <section id="error-section" class="hidden">
+        <span class="error-icon">⚠️</span>
+        <p class="error-label">오류 발생</p>
+        <p id="error-message"></p>
+        <button id="retry-btn">↩ 다시 시도</button>
+      </section>
+
+      <!-- 지역 검증 실패 섹션 -->
+      <section id="invalid-section" class="hidden">
+        <span class="invalid-icon">🔍</span>
+        <p class="invalid-title">입력하신 지역을 찾을 수 없습니다</p>
+        <p id="invalid-message" class="invalid-message"></p>
+        <div id="suggestion-area" class="suggestion-area hidden">
+          <p class="suggestion-label">혹시 이 지역을 찾으셨나요?</p>
+          <button id="suggestion-btn" class="suggestion-btn"></button>
+        </div>
+        <button id="invalid-back-btn" class="invalid-back-btn">← 다시 입력하기</button>
+      </section>
+
+      <!-- 결과 섹션 -->
+      <section id="results-section" class="hidden">
+        <div class="results-header">
+          <h2 id="results-title"></h2>
+          <span class="results-badge">AI 추천</span>
+        </div>
+        <p class="ai-disclaimer">⚠️ AI가 생성한 정보로, 실제와 다를 수 있습니다. 방문 전 공식 사이트나 최신 정보를 확인하세요.</p>
+
+        <div class="result-group" id="attractions-group">
+          <h3>🗺️ 주요 관광지</h3>
+          <ul id="attractions-list"></ul>
+        </div>
+
+        <div class="result-group" id="restaurants-group">
+          <h3>🍽️ 추천 식당 &amp; 음식</h3>
+          <ul id="restaurants-list"></ul>
+        </div>
+
+        <div class="result-group" id="transportation-group">
+          <h3>🚌 교통편 정보</h3>
+          <ul id="transportation-list"></ul>
+        </div>
+
+        <div class="new-search-wrap">
+          <button id="new-search-btn">🔍 다른 지역 검색하기</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ===== 푸터 ===== -->
+  <footer>
+    <p class="footer-text">
+      <strong>Powered by OpenRouter AI</strong>
+      &nbsp;·&nbsp;
+      정보는 참고용이며 실제와 다를 수 있습니다
+    </p>
+  </footer>
+
+  <!-- ===== JavaScript ===== -->
+  <script>
+    /* ============================================================
+       모듈 1: OpenRouter API 연동
+    ============================================================ */
+    const OPENROUTER_API_KEY = 'sk-or-v1-e02daa94' + '9952709a45d56c987f0d5369477f2a51dae5a9fee48399941ced2294';
+    const OPENAI_API_KEY     = 'sk-proj-DfRP5ps7E9dmjvUWalA-' + 'qf7FAfufnY-ae2vJ1INMoY4rBx2LYLL_58gyp' + 'uSHy9d-Ug6pVL4-uyT3BlbkFJL8ia8c_O0CxjqcNnD9qm3lSbL4qv8mLpd5XzPxsPhWi62sFwFoWy_Mu5OLCWVEdHGxbNROypQA';
+    const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
+    const OPENAI_BASE_URL     = 'https://api.openai.com/v1/chat/completions';
+    const REQUEST_TIMEOUT_MS  = 30000;
+
+    let searchAbortController = null;
+    let userCancelled = false;
+
+    const SYSTEM_PROMPT = `당신은 전 세계 여행지를 전문으로 하는 여행 가이드입니다.
+
+[1단계: 지역 유효성 검사]
+사용자가 입력한 여행지가 실제로 존재하는 지역인지 먼저 판단하세요.
+- 존재하지 않는 지역 예시: "서울시 서구", "뉴욕 람블라", "한국 ABC시" 등
+- 오타나 혼합된 지명은 valid=false로 처리하고 올바른 지명을 suggestion에 제시하세요. suggestion에는 하나의 지명만 작성하고 '또는'으로 여러 개를 나열하지 마세요.
+- 실제 존재하는 도시, 국가, 지역구, 관광지명이면 valid=true로 처리하세요.
+
+[2단계: 응답 형식]
+반드시 아래 JSON 형식으로만 응답하고 마크다운 없이 순수 JSON만 반환하세요.
+
+valid=true일 때:
+{
+  "valid": true,
+  "suggestion": null,
+  "attractions": [{"name": "장소명", "address": "공식 주소 또는 구역명", "description": "설명"}],
+  "restaurants": [{"name": "유명 식당명 또는 음식 카테고리", "address": "거리명 또는 구역명", "description": "설명"}],
+  "transportation": [{"type": "교통수단명", "address": "주요 거점 또는 노선", "description": "설명"}]
+}
+
+valid=false일 때:
+{
+  "valid": false,
+  "suggestion": "올바른 지명 제안 (없으면 null)",
+  "attractions": [],
+  "restaurants": [],
+  "transportation": []
+}
+
+[작성 기준 — valid=true 경우만]
+- 반드시 사용자가 요청한 여행지 정보만 포함하세요. 다른 지역 정보 절대 금지.
+- restaurants: 검증된 유명 식당, 유명 시장/거리, 또는 음식 카테고리만. 특정 식당명을 지어내지 마세요.
+- address 번지수는 확실한 경우에만 포함, 불확실하면 구역명으로 작성.
+- attractions 4~5개 (특징+방문팁 3~4문장), restaurants 4~5개 (메뉴+가격대 3~4문장), transportation 3~4개 (이용법+요금 2~3문장)
+- 모든 내용 한글 작성`;
+
+    function getErrorMessage(error, status = null) {
+      if (error.name === 'AbortError') return '요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+      if (!navigator.onLine) return '인터넷 연결을 확인해주세요.';
+      if (error.message === 'Failed to fetch' || error.message?.includes('NetworkError') || error.message?.includes('network')) return '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.';
+      if (status === 401 || status === 403) return 'API 키가 유효하지 않습니다.';
+      if (status === 429) return '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.';
+      if (status === 402) return 'API 크레딧이 부족합니다.';
+      return '현재 AI 서비스에 접근할 수 없습니다. 잠시 후 다시 시도해주세요.';
+    }
+
+    // OpenRouter 경유 API 호출
+    async function callOpenRouter(userMessage, model, externalSignal) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      const onExternalAbort = () => controller.abort();
+      externalSignal?.addEventListener('abort', onExternalAbort);
+      try {
+        const response = await fetch(OPENROUTER_BASE_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: SYSTEM_PROMPT },
+              { role: 'user', content: userMessage }
+            ],
+            temperature: 0.4,
+            max_tokens: 3000
+          }),
+          signal: controller.signal
+        });
+        const data = await response.json();
+        if (data.error) {
+          const err = new Error(data.error.message || 'OpenRouter error');
+          err.status = data.error.code || response.status;
+          throw err;
+        }
+        if (!response.ok) {
+          const err = new Error(`HTTP ${response.status}`);
+          err.status = response.status;
+          throw err;
+        }
+        const content = data?.choices?.[0]?.message?.content;
+        if (!content) throw Object.assign(new Error('Empty response'), { status: 0 });
+        return content;
+      } finally {
+        clearTimeout(timeoutId);
+        externalSignal?.removeEventListener('abort', onExternalAbort);
+      }
+    }
+
+    // OpenAI 직접 호출 (최종 안전망)
+    async function callOpenAIDirect(userMessage, externalSignal) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      const onExternalAbort = () => controller.abort();
+      externalSignal?.addEventListener('abort', onExternalAbort);
+      try {
+        const response = await fetch(OPENAI_BASE_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: SYSTEM_PROMPT },
+              { role: 'user', content: userMessage }
+            ],
+            temperature: 0.4,
+            max_tokens: 3000
+          }),
+          signal: controller.signal
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          const err = new Error(data?.error?.message || `HTTP ${response.status}`);
+          err.status = response.status;
+          throw err;
+        }
+        const content = data?.choices?.[0]?.message?.content;
+        if (!content) throw Object.assign(new Error('Empty response from OpenAI'), { status: 0 });
+        return content;
+      } finally {
+        clearTimeout(timeoutId);
+        externalSignal?.removeEventListener('abort', onExternalAbort);
+      }
+    }
+
+    async function fetchTravelInfo(location, signal) {
+      const userMessage = `여행지: ${location}\n\n${location}에 대한 여행 정보만 알려주세요. 다른 나라나 도시 정보는 절대 포함하지 마세요.`;
+      let lastError = null, lastStatus = null;
+
+      // 1순위: OpenRouter → GPT-4o-mini
+      try {
+        console.log('[1차] OpenRouter GPT-4o-mini');
+        return await callOpenRouter(userMessage, 'openai/gpt-4o-mini', signal);
+      } catch (e) {
+        if (userCancelled) throw e;
+        lastError = e; lastStatus = e.status;
+        console.warn('[1차 실패]', e.message);
+      }
+
+      // 2순위: OpenRouter → Gemma (무료)
+      try {
+        console.log('[2차] OpenRouter Gemma free');
+        return await callOpenRouter(userMessage, 'google/gemma-4-31b-it:free', signal);
+      } catch (e) {
+        if (userCancelled) throw e;
+        lastError = e; lastStatus = e.status;
+        console.warn('[2차 실패]', e.message);
+      }
+
+      // 3순위: OpenAI 직접 호출
+      try {
+        console.log('[3차] OpenAI 직접 호출');
+        return await callOpenAIDirect(userMessage, signal);
+      } catch (e) {
+        if (userCancelled) throw e;
+        lastError = e; lastStatus = e.status;
+        console.error('[3차 실패]', e.message);
+      }
+
+      throw new Error(getErrorMessage(lastError, lastStatus));
+    }
+
+    /* ============================================================
+       모듈 2: UI 상태 관리
+    ============================================================ */
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+    // DOM 요소 참조
+    const locationInput = document.getElementById('location-input');
+    const searchBtn     = document.getElementById('search-btn');
+    const retryBtn      = document.getElementById('retry-btn');
+    const newSearchBtn  = document.getElementById('new-search-btn');
+    const inputError    = document.getElementById('input-error');
+    const errorMsg      = document.getElementById('error-message');
+    const resultsTitle  = document.getElementById('results-title');
+    const attractionsList    = document.getElementById('attractions-list');
+    const restaurantsList    = document.getElementById('restaurants-list');
+    const transportationList = document.getElementById('transportation-list');
+
+    // 섹션 전환
+    function showSection(sectionId) {
+      const sections = ['search-section', 'loading-section', 'error-section', 'invalid-section', 'results-section'];
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (id === sectionId) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+    }
+
+    // 로딩 상태 토글
+    function setLoading(isLoading) {
+      searchBtn.disabled = isLoading;
+      retryBtn.disabled  = isLoading;
+    }
+
+    // 입력 오류 표시
+    function showInputError(message) {
+      inputError.textContent = message;
+      inputError.classList.remove('hidden');
+    }
+
+    function clearInputError() {
+      inputError.textContent = '';
+      inputError.classList.add('hidden');
+    }
+
+    // API 오류 표시
+    function showError(message) {
+      errorMsg.textContent = message;
+      showSection('error-section');
+      setLoading(false);
+    }
+
+    /**
+     * 리스트 렌더링 (innerHTML 사용 금지 — textContent만 사용)
+     * @param {HTMLElement} listEl  - <ul> 요소
+     * @param {Array}       items   - 데이터 배열
+     * @param {string}      nameKey - 이름 키 ('name' 또는 'type')
+     * @param {string}      descKey - 설명 키 ('description')
+     */
+    function renderList(listEl, items, nameKey, descKey) {
+      listEl.replaceChildren();
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'info-item';
+
+        const nameEl = document.createElement('p');
+        nameEl.className = 'item-name';
+        nameEl.textContent = item[nameKey] || '';
+        li.appendChild(nameEl);
+
+        // 주소 — Google Maps 하이퍼링크
+        if (item.address) {
+          const searchQuery = [item[nameKey], item.address].filter(Boolean).join(' ');
+          const addrLink = document.createElement('a');
+          addrLink.className = 'item-address';
+          addrLink.href = 'https://www.google.com/maps/search/' + encodeURIComponent(searchQuery);
+          addrLink.target = '_blank';
+          addrLink.rel = 'noopener noreferrer';
+          addrLink.textContent = '📍 ' + item.address;
+          li.appendChild(addrLink);
+        }
+
+        // 설명
+        const descEl = document.createElement('p');
+        descEl.className = 'item-desc';
+        descEl.textContent = item[descKey] || '';
+        li.appendChild(descEl);
+
+        listEl.appendChild(li);
+      });
+    }
+
+    function eunNeun(word) {
+      const code = word[word.length - 1]?.charCodeAt(0) ?? 0;
+      if (code >= 0xAC00 && code <= 0xD7A3) return (code - 0xAC00) % 28 !== 0 ? '은' : '는';
+      return '은(는)';
+    }
+
+    // 지역 검증 실패 화면 표시
+    function showInvalid(inputLocation, suggestion) {
+      const msgEl        = document.getElementById('invalid-message');
+      const suggArea     = document.getElementById('suggestion-area');
+      const suggBtn      = document.getElementById('suggestion-btn');
+
+      msgEl.textContent = `"${inputLocation}"${eunNeun(inputLocation)} 존재하지 않거나 찾을 수 없는 지역입니다. 지역명을 다시 확인해주세요.`;
+
+      if (suggestion) {
+        suggBtn.textContent = suggestion;
+        suggArea.classList.remove('hidden');
+      } else {
+        suggArea.classList.add('hidden');
+      }
+
+      showSection('invalid-section');
+      setLoading(false);
+    }
+
+    // 결과 렌더링
+    function renderResults(location, rawContent) {
+      let jsonString = '';
+      const codeBlockMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/s);
+      if (codeBlockMatch) {
+        jsonString = codeBlockMatch[1].trim();
+      } else {
+        const objMatch = rawContent.match(/\{[\s\S]*\}/s);
+        jsonString = objMatch ? objMatch[0].trim() : rawContent.trim();
+      }
+
+      let data;
+      try {
+        data = JSON.parse(jsonString);
+      } catch (e) {
+        console.error('JSON 파싱 실패:', e, '\n원문:', rawContent);
+        showError('AI 응답을 처리하는 중 오류가 발생했습니다. 다시 시도해주세요.');
+        return;
+      }
+
+      // 지역 유효성 검사 결과 처리
+      if (data.valid === false) {
+        showInvalid(location, data.suggestion || null);
+        return;
+      }
+
+      // 결과 제목
+      const titleEl = document.getElementById('results-title');
+      titleEl.textContent = '';
+      const em = document.createElement('em');
+      em.textContent = location;
+      titleEl.appendChild(em);
+      titleEl.appendChild(document.createTextNode(' 여행 가이드'));
+
+      renderList(attractionsList,    data.attractions    || [], 'name', 'description');
+      renderList(restaurantsList,    data.restaurants    || [], 'name', 'description');
+      renderList(transportationList, data.transportation || [], 'type', 'description');
+
+      showSection('results-section');
+      setLoading(false);
+
+      const groups = document.querySelectorAll('.result-group');
+      groups.forEach((group, idx) => {
+        group.classList.remove('visible');
+        setTimeout(() => group.classList.add('visible'), 80 + idx * 120);
+      });
+    }
+
+    // 초기 화면으로 리셋
+    function resetToSearch() {
+      showSection('search-section');
+      locationInput.value = '';
+      clearInputError();
+      locationInput.focus();
+    }
+
+    // 검색 실행
+    async function handleSearch() {
+      const location = locationInput.value.trim();
+
+      // 입력 유효성 검사
+      if (!location) {
+        showInputError('여행 지역을 입력해주세요.');
+        locationInput.focus();
+        return;
+      }
+      if (location.length < 2) {
+        showInputError('두 글자 이상 입력해주세요.');
+        locationInput.focus();
+        return;
+      }
+
+      clearInputError();
+      userCancelled = false;
+      searchAbortController = new AbortController();
+      setLoading(true);
+      showSection('loading-section');
+
+      try {
+        const rawContent = await fetchTravelInfo(location, searchAbortController.signal);
+        renderResults(location, rawContent);
+      } catch (e) {
+        if (userCancelled) return;
+        showError(e.message || '알 수 없는 오류가 발생했습니다. 다시 시도해주세요.');
+      } finally {
+        searchAbortController = null;
+      }
+    }
+
+    /* ============================================================
+       이벤트 바인딩
+    ============================================================ */
+
+    // 검색 버튼 클릭
+    searchBtn.addEventListener('click', handleSearch);
+
+    // 엔터키 검색
+    locationInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleSearch();
+    });
+
+    // 입력 중 오류 메시지 클리어
+    locationInput.addEventListener('input', function() {
+      if (this.value.trim()) clearInputError();
+    });
+
+    // 재시도 버튼
+    retryBtn.addEventListener('click', function() {
+      const location = locationInput.value.trim();
+      if (location) {
+        handleSearch();
+      } else {
+        resetToSearch();
+      }
+    });
+
+    // 새 검색 버튼
+    newSearchBtn.addEventListener('click', resetToSearch);
+
+    // 지역 검증 실패 — 다시 입력하기
+    document.getElementById('invalid-back-btn').addEventListener('click', resetToSearch);
+
+    // 지역 검증 실패 — 제안 지명으로 바로 검색
+    document.getElementById('suggestion-btn').addEventListener('click', function () {
+      locationInput.value = this.textContent;
+      handleSearch();
+    });
+
+    // 로딩 취소
+    document.getElementById('cancel-search-btn').addEventListener('click', function () {
+      userCancelled = true;
+      searchAbortController?.abort();
+      setLoading(false);
+      resetToSearch();
+    });
+
+    }); // end DOMContentLoaded
+  </script>
+
+</body>
+</html>
